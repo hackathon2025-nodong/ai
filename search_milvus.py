@@ -31,9 +31,11 @@ def search_similar_texts(query, top_k=5):
     # Get collection
     collection = Collection(COLLECTION_NAME)
     
-    # Load collection
-    if not collection.is_loaded():
-        collection.load()
+    # Load collection (always try to load it to ensure it's ready for search)
+    try:
+        utility.load_collection(COLLECTION_NAME)
+    except Exception as e:
+        print(f"Collection already loaded or error: {e}")
     
     # Encode query
     query_vector = model.encode(query, normalize_embeddings=True)

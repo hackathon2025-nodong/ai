@@ -99,7 +99,13 @@ def main():
         #milvus에 삽입
         collection.insert(entities)
     
-    collection.load()
+    # Load collection for searching
+    try:
+        utility.load_collection(COLLECTION_NAME)
+        print("Collection loaded successfully!")
+    except Exception as e:
+        print(f"Collection loading error: {e}")
+    
     print("Data ingestion completed!")
 
 if __name__ == "__main__":
