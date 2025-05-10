@@ -11,7 +11,7 @@ load_dotenv()
 
 # Constants
 COLLECTION_NAME = "foreign_worker_guide"
-DIMENSION = 768  # KURE-v1 고려대 개발 모델 
+DIMENSION = 1024  # KURE-v1 고려대 개발 모델의 정확한.
 BATCH_SIZE = 100
 
 def load_text_files(directory: str) -> List[str]:
@@ -70,40 +70,35 @@ def main():
     #모델 로드
     print("Loading embedding model (KURE-v1)...")
     # KURE-v1 모델 로드 - 한국어에 최적화된 모델
-    model = SentenceTransformer('KETI-AIR/KURE-v1')
+    model = SentenceTransformer('nlpai-lab/KURE-v1')
     
-    # Create collection
+    #컬렉션 생성
     print("Creating collection...")
     collection = create_collection()
     
-    # Load and process text files
     print("Loading text files...")
     texts = load_text_files("ocr_results")
     
-    # Split texts into chunks
+    #텍스트 청크 분할
     print("Splitting texts into chunks...")
     chunks = []
     for text in texts:
         chunks.extend(split_text(text))
     
-    # Generate embeddings and insert in batches
     print("Generating embeddings and inserting into Milvus...")
     for i in tqdm(range(0, len(chunks), BATCH_SIZE)):
         batch_chunks = chunks[i:i + BATCH_SIZE]
         
-        # Generate embeddings
         embeddings = model.encode(batch_chunks, normalize_embeddings=True)
         
-        # Prepare data for insertion
         entities = [
             {"text": chunk, "vector": embedding.tolist()}
             for chunk, embedding in zip(batch_chunks, embeddings)
         ]
         
-        # Insert into Milvus
+        #milvus에 삽입
         collection.insert(entities)
     
-    # Load collection for searching
     collection.load()
     print("Data ingestion completed!")
 

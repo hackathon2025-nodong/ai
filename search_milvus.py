@@ -21,7 +21,7 @@ def search_similar_texts(query, top_k=5):
     Search for similar texts in Milvus
     """
     # Load the same model used for encoding
-    model = SentenceTransformer('KETI-AIR/KURE-v1')
+    model = SentenceTransformer('nlpai-lab/KURE-v1')
     
     # Check if collection exists
     if not utility.has_collection(COLLECTION_NAME):
