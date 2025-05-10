@@ -2,6 +2,7 @@ import os
 from dotenv import load_dotenv
 from sentence_transformers import SentenceTransformer
 from pymilvus import connections, Collection, utility
+import time
 
 # Load environment variables
 load_dotenv()
@@ -31,11 +32,24 @@ def search_similar_texts(query, top_k=5):
     # Get collection
     collection = Collection(COLLECTION_NAME)
     
-    # Load collection (always try to load it to ensure it's ready for search)
-    try:
-        utility.load_collection(COLLECTION_NAME)
-    except Exception as e:
-        print(f"Collection already loaded or error: {e}")
+    # Explicitly load collection and retry if needed
+    retry_count = 0
+    max_retries = 3
+    
+    while retry_count < max_retries:
+        try:
+            print(f"Loading collection '{COLLECTION_NAME}'...")
+            collection.load()
+            print(f"Collection loaded successfully.")
+            break
+        except Exception as e:
+            print(f"Load attempt {retry_count+1} failed: {e}")
+            retry_count += 1
+            if retry_count >= max_retries:
+                print(f"Failed to load collection after {max_retries} attempts.")
+                return []
+            print(f"Retrying in 2 seconds...")
+            time.sleep(2)
     
     # Encode query
     query_vector = model.encode(query, normalize_embeddings=True)
@@ -46,34 +60,38 @@ def search_similar_texts(query, top_k=5):
         "params": {"nprobe": 10}
     }
     
-    results = collection.search(
-        data=[query_vector.tolist()],
-        anns_field="vector",
-        param=search_params,
-        limit=top_k,
-        output_fields=["text"]
-    )
-    
-    # Format results
-    search_results = []
-    for hits in results:
-        for hit in hits:
-            search_results.append({
-                "id": hit.id,
-                "score": hit.score,
-                "text": hit.entity.get("text")
-            })
-    
-    return search_results
+    try:
+        print("Executing search...")
+        results = collection.search(
+            data=[query_vector.tolist()],
+            anns_field="vector",
+            param=search_params,
+            limit=top_k,
+            output_fields=["text"]
+        )
+        print(f"Search completed, found {len(results[0])} results.")
+        
+        # Format results
+        search_results = []
+        for hits in results:
+            for hit in hits:
+                search_results.append({
+                    "id": hit.id,
+                    "score": hit.score,
+                    "text": hit.entity.get("text")
+                })
+        
+        return search_results
+    except Exception as e:
+        print(f"Search error: {e}")
+        return []
 
 if __name__ == "__main__":
     # Test queries
     test_queries = [
-        "외국인 근로자 고용허가제란 무엇인가?",
-        "외국인 근로자 보험 가입은 어떻게 하나요?",
-        "근로계약 기간은 얼마나 되나요?",
-        "외국인 근로자 고용 사업주의 의무는 무엇인가요?",
-        "주요 유관기관 안내란?"
+        "농약 중독의 증상은 무엇인가?",
+        "예초기 사용 시 재해 예방 방법은?",
+        "트랙터 안전 운전을 위한 조치사항은?"
     ]
     
     for query in test_queries:
