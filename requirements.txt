@@ -1,0 +1,5 @@
+pymilvus==2.5.4
+sentence-transformers==2.5.1
+numpy==1.26.4
+python-dotenv==1.0.1
+tqdm==4.66.2 
