@@ -235,12 +235,15 @@ Commits:
 
 - `docs: define legal graph rag data collection`
 - `docs: define graph rag implementation harness`
+- `docs: define ai orchestrator workflow`
 
 Done when:
 
 - Dataset scope is written.
 - Step-by-step implementation rail is written.
 - Legal API source decision is recorded.
+- Runtime routing policy is written.
+- Agent operating guide is written.
 
 Verification:
 
@@ -888,4 +891,3 @@ Needed before production-like run:
 
 - Data retention policy for AI chats and document analysis requests.
 - Whether legal disclaimer copy should be shown in every answer.
-
